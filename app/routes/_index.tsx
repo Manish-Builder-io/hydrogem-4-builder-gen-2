@@ -6,6 +6,12 @@ import type {
   FeaturedCollectionFragment,
   RecommendedProductsQuery,
 } from 'storefrontapi.generated';
+import {
+  fetchOneEntry,
+  isEditing,
+  isPreviewing,
+  Content,
+} from '@builder.io/sdk-react/edge';
 
 export const meta: MetaFunction = () => {
   return [{title: 'Hydrogen | Home'}];
@@ -17,15 +23,29 @@ export async function loader({context}: LoaderFunctionArgs) {
   const featuredCollection = collections.nodes[0];
   const recommendedProducts = storefront.query(RECOMMENDED_PRODUCTS_QUERY);
 
-  return defer({featuredCollection, recommendedProducts});
+  const page = await fetchOneEntry({
+    model: 'page',
+    apiKey: '112c9f1ce50d450ea4e478af2043a518',
+    userAttributes: {
+      urlPath: `/`,
+    },
+  });
+
+  return defer({featuredCollection, recommendedProducts, page});
 }
 
 export default function Homepage() {
   const data = useLoaderData<typeof loader>();
+  const {page} = useLoaderData<typeof loader>();
   return (
     <div className="home">
       <FeaturedCollection collection={data.featuredCollection} />
       <RecommendedProducts products={data.recommendedProducts} />
+      <Content
+        model="page"
+        apiKey="112c9f1ce50d450ea4e478af2043a518"
+        content={page}
+      />
     </div>
   );
 }
